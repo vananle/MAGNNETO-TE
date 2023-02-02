@@ -202,6 +202,7 @@ class PPOAgent(object):
             eps_rewards = []
             mlu = []
             for tm_steps in range(num_train_steps):
+                print(f' Step: {tm_steps}')
                 training_step += 1
                 states, actions, rewards, log_probs, values, last_value, info = self.run_episode()
                 returns, advantages = self.gae_estimation(rewards, values, last_value)
