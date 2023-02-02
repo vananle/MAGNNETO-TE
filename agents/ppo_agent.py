@@ -201,8 +201,9 @@ class PPOAgent(object):
         for episode in iterations:
             eps_rewards = []
             mlu = []
-            for tm_steps in range(num_train_steps):
-                print(f' Step: {tm_steps}')
+
+            tm_steps = tqdm.trange(num_train_steps)
+            for tm_step in tm_steps:
                 training_step += 1
                 states, actions, rewards, log_probs, values, last_value, info = self.run_episode()
                 returns, advantages = self.gae_estimation(rewards, values, last_value)
