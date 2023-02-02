@@ -165,7 +165,7 @@ class PPOAgent(object):
         value = self.run_critic(state)
         last_value = value.numpy()[0]
 
-        return states, actions, rewards, log_probs, values, last_value
+        return states, actions, rewards, log_probs, values, last_value, info
 
     def run_update(self, training_episode, states, actions, returns, advantages, log_probs):
         actor_losses, critic_losses, losses = [], [], []
@@ -190,23 +190,32 @@ class PPOAgent(object):
         return actor_losses, critic_losses, losses
 
     def train_and_evaluate(self):
-        training_episode = -1
+        training_step = -1
+        num_train_steps = self.env.tm.shape[0]
         num_env_steps = 10e6
-        episodes = int(num_env_steps) // self.horizon
+        episodes = int(num_env_steps) // num_train_steps
 
         iterations = tqdm.trange(episodes)
         episode_infos = []
         # while not (self.env.num_sample == self.last_training_sample and self.change_sample == True):
         for episode in iterations:
-            states, actions, rewards, log_probs, values, last_value = self.run_episode()
-            returns, advantages = self.gae_estimation(rewards, values, last_value)
+            eps_rewards = []
+            mlu = []
+            for tm_steps in range(num_train_steps):
+                training_step += 1
+                states, actions, rewards, log_probs, values, last_value, info = self.run_episode()
+                returns, advantages = self.gae_estimation(rewards, values, last_value)
 
-            actor_losses, critic_losses, losses = self.run_update(episode, states, actions, returns,
-                                                                  advantages, log_probs)
-            tf_logs.training_episode_logs(self.writer, self.env, episode, states, rewards, losses,
-                                          actor_losses, critic_losses)
+                actor_losses, critic_losses, losses = self.run_update(training_step, states, actions, returns,
+                                                                      advantages, log_probs)
+                tf_logs.training_episode_logs(self.writer, self.env, training_step, states, rewards, losses,
+                                              actor_losses, critic_losses)
 
-            iterations.set_description(f'Episode {episode} Reward: {np.mean(rewards)}')
+                eps_rewards.append(np.mean(rewards))
+                mlu.append(info['mlu'])
+
+            iterations.set_description(f'Episode {episode} Reward: {np.mean(eps_rewards)}, '
+                                       f'mlu: {np.mean(mlu)}')
 
             if (episode + 1) % self.eval_period == 0:
                 self.training_eval()

@@ -293,7 +293,7 @@ class EnvironmentNew(object):
             if self.G[i][j]['traffic'] <= 0:
                 self.utilizations.append(0.0)
             else:
-                self.utilizations.append(self.link_traffic[self.G[i][j]['id']] / self.G[i][j]['traffic'])
+                self.utilizations.append(self.G[i][j]['traffic'] / self.G[i][j]['capacity'])
 
         mlu = max(self.utilizations)
         info = {'mlu': mlu}
