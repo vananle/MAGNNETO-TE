@@ -209,7 +209,6 @@ class PPOAgent(object):
 
             iterations.set_description(f'Episode {episode}')
 
-
             if (episode + 1) % self.eval_period == 0:
                 self.training_eval()
                 if self.save_checkpoints:
