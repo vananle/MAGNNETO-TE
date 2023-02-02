@@ -5,9 +5,10 @@ import gin.tf
 import numpy as np
 import tensorflow as tf
 import tensorflow_probability as tfp
+import tqdm
 
 import utils.tf_logs as tf_logs
-from environment.environment import Environment
+from environment.environment_new import EnvironmentNew
 from lib.actor import Actor
 from lib.critic import Critic
 
@@ -18,7 +19,7 @@ class PPOAgent(object):
 
     def __init__(self,
                  env,
-                 eval_env_type=['GBN', 'NSFNet', 'GEANT2'],
+                 eval_env_type=['geant'],
                  num_eval_samples=10,
                  max_simultaneous_actions=5,
                  clip_param=0.2,
@@ -28,13 +29,13 @@ class PPOAgent(object):
                  max_grad_norm=1.0,
                  gamma=0.99,
                  gae_lambda=0.95,
-                 horizon=None,
+                 horizon=100,
                  default_NSFNet_horizon=100,
                  default_GBN_horizon=150,
                  default_GEANT2_horizon=200,
                  batch_size=25,
                  epochs=3,
-                 last_training_sample=99,
+                 last_training_sample=200,
                  eval_period=50,
                  max_evals=100,
                  select_max_action=False,
@@ -153,7 +154,7 @@ class PPOAgent(object):
             value = self.run_critic(state)
             total_reward = 0
             for action in current_actions:
-                next_state, reward = self.env.step(action)
+                next_state, reward, info = self.env.step(action)
                 total_reward += reward
             states[t] = state
             actions.append(current_actions)
@@ -190,7 +191,13 @@ class PPOAgent(object):
 
     def train_and_evaluate(self):
         training_episode = -1
-        while not (self.env.num_sample == self.last_training_sample and self.change_sample == True):
+        num_env_steps = 10e6
+        episodes = int(num_env_steps) // self.horizon
+
+        iterations = tqdm.trange(episodes)
+        episode_infos = []
+        # while not (self.env.num_sample == self.last_training_sample and self.change_sample == True):
+        for episode in iterations:
             training_episode += 1
             print('Episode ', training_episode, '...')
             states, actions, rewards, log_probs, values, last_value = self.run_episode()
@@ -219,9 +226,10 @@ class PPOAgent(object):
     def generate_eval_env(self):
         self.eval_envs = {}
         for eval_env_type in self.eval_env_type:
-            self.eval_envs[eval_env_type] = Environment(env_type=eval_env_type,
-                                                        traffic_profile=self.env.traffic_profile,
-                                                        routing=self.env.routing)
+            self.eval_envs[eval_env_type] = EnvironmentNew(env_type=eval_env_type,
+                                                           traffic_profile=self.env.traffic_profile,
+                                                           routing=self.env.routing,
+                                                           only_eval=True)
 
     def generate_eval_actor_critic_functions(self):
         self.eval_actor = {}
@@ -253,9 +261,10 @@ class PPOAgent(object):
         self.update_eval_actor_critic_functions()
 
         for eval_env_type in self.eval_env_type:
-            self.eval_envs[eval_env_type].define_num_sample(100)
+            # self.eval_envs[eval_env_type].define_num_sample(100)
 
             total_min_max = []
+            self.num_eval_samples = self.eval_envs[eval_env_type].tm.shape[0]
             mini_eval_episode = self.eval_episode * self.num_eval_samples
             for _ in range(self.num_eval_samples):
                 self.eval_envs[eval_env_type].reset(change_sample=True)
@@ -272,7 +281,7 @@ class PPOAgent(object):
                                                        select_max=self.select_max_action)
                     value = self.eval_critic[eval_env_type](state)
                     for action in actions:
-                        next_state, reward = self.eval_envs[eval_env_type].step(action)
+                        next_state, reward, info = self.eval_envs[eval_env_type].step(action)
                     # probs.append(np.exp(log_prob))
                     values.append(value.numpy()[0])
                     state = next_state
@@ -307,7 +316,7 @@ class PPOAgent(object):
             actions, log_probs = self.act(state, select_max=self.select_max_action)
             value = self.run_critic(state)
             for action in actions:
-                next_state, reward = self.env.step(action)
+                next_state, reward, info = self.env.step(action)
             # probs.append(np.exp(log_prob))
             values.append(value.numpy()[0])
             state = next_state
@@ -352,7 +361,7 @@ class PPOAgent(object):
         with tf.GradientTape(persistent=True) as tape:
             new_log_probs, entropy = tf.map_fn(lambda x: self.get_new_log_prob_and_entropy(x[0], x[1]),
                                                (states, actions), fn_output_signature=(
-                tf.RaggedTensorSpec(shape=[None], dtype=tf.float32), tf.float32))
+                    tf.RaggedTensorSpec(shape=[None], dtype=tf.float32), tf.float32))
 
             values = tf.map_fn(lambda x: self.training_critic[self.env.network](x, training=True), states,
                                fn_output_signature=tf.float32)

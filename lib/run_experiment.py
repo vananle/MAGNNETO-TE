@@ -1,5 +1,6 @@
 
 from environment.environment import Environment
+from environment.environment_new import EnvironmentNew
 from agents.ppo_agent import PPOAgent
 
 import os
@@ -21,7 +22,7 @@ class Runner(object):
                  checkpoint_base_dir='checkpoints',
                  save_checkpoints=True):
         
-        env = Environment()
+        env = EnvironmentNew(only_eval=only_eval)
         self.save_checkpoints = save_checkpoints
         if algorithm == 'PPO':
             self.agent = PPOAgent(env, save_checkpoints=save_checkpoints)

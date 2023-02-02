@@ -8,7 +8,7 @@ Runner.model_dir = 'checkpoints/...'
 Runner.only_eval = False
 Runner.save_checkpoints = True
 
-Environment.env_type = 'NSFNet+GEANT2'
+Environment.env_type = 'geant'
 Environment.traffic_profile = 'uniform'
 Environment.routing = 'sp'
 Environment.probs_to_states = False
