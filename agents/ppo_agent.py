@@ -207,7 +207,7 @@ class PPOAgent(object):
             tf_logs.training_episode_logs(self.writer, self.env, episode, states, rewards, losses,
                                           actor_losses, critic_losses)
 
-            iterations.set_description(f'Episode {episode}')
+            iterations.set_description(f'Episode {episode} Reward: {rewards}')
 
             if (episode + 1) % self.eval_period == 0:
                 self.training_eval()
