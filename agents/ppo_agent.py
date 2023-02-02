@@ -198,7 +198,7 @@ class PPOAgent(object):
         episode_infos = []
         # while not (self.env.num_sample == self.last_training_sample and self.change_sample == True):
         for episode in iterations:
-            # print('Episode ', episode, '...')
+            print('Episode ', episode, '...')
             states, actions, rewards, log_probs, values, last_value = self.run_episode()
             returns, advantages = self.gae_estimation(rewards, values, last_value)
 
