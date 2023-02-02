@@ -36,7 +36,7 @@ class PPOAgent(object):
                  batch_size=25,
                  epochs=3,
                  last_training_sample=200,
-                 eval_period=50,
+                 eval_period=1,
                  max_evals=100,
                  select_max_action=False,
                  optimizer=tf.keras.optimizers.Adam(
