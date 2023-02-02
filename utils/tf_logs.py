@@ -41,6 +41,22 @@ def training_episode_logs(writer, env, episode, states, assigned_rewards, losses
         writer.flush()
 
 
+def training_summary_episode_logs(writer, episode, avg_reward, avg_mlu):
+    with writer.as_default():
+        with tf.name_scope('Training_episode'):
+            tf.summary.scalar("Reward mean", avg_reward, step=episode)
+            tf.summary.scalar("Avg mlu", avg_mlu, step=episode)
+            #tf.summary.scalar("Reward max", np.max(assigned_rewards), step=episode)
+            #tf.summary.scalar("Reward min", np.min(assigned_rewards), step=episode)
+            #if env.link_traffic_to_states:
+                #mean_link_utilization = [np.mean(elem[:env.n_links]) for elem in states]
+                #tf.summary.scalar("Mean Link Utilization mean", np.mean(mean_link_utilization), step=episode)
+                #tf.summary.scalar("Mean Link Utilization max", np.max(mean_link_utilization), step=episode)
+                #tf.summary.scalar("Mean Link Utilization min", np.min(mean_link_utilization), step=episode)
+        writer.flush()
+
+
+
 def eval_step_logs(writer, env, eval_step, state, actions=None, reward=None, prob=None, value=None):
     network = ('+').join(env.env_type)
     with writer.as_default():

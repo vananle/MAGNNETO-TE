@@ -216,6 +216,7 @@ class PPOAgent(object):
 
             iterations.set_description(f'Episode {episode} Reward: {np.mean(eps_rewards)}, '
                                        f'mlu: {np.mean(mlu)}')
+            tf_logs.training_summary_episode_logs(self.writer, episode, np.mean(eps_rewards), np.mean(mlu))
 
             if (episode + 1) % self.eval_period == 0:
                 self.training_eval()
