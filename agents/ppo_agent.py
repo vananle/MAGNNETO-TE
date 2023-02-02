@@ -198,17 +198,19 @@ class PPOAgent(object):
         episode_infos = []
         # while not (self.env.num_sample == self.last_training_sample and self.change_sample == True):
         for episode in iterations:
-            training_episode += 1
-            print('Episode ', training_episode, '...')
+            # print('Episode ', episode, '...')
             states, actions, rewards, log_probs, values, last_value = self.run_episode()
             returns, advantages = self.gae_estimation(rewards, values, last_value)
 
-            actor_losses, critic_losses, losses = self.run_update(training_episode, states, actions, returns,
+            actor_losses, critic_losses, losses = self.run_update(episode, states, actions, returns,
                                                                   advantages, log_probs)
-            tf_logs.training_episode_logs(self.writer, self.env, training_episode, states, rewards, losses,
+            tf_logs.training_episode_logs(self.writer, self.env, episode, states, rewards, losses,
                                           actor_losses, critic_losses)
 
-            if (training_episode + 1) % self.eval_period == 0:
+            iterations.set_description(f'Episode {episode}')
+
+
+            if (episode + 1) % self.eval_period == 0:
                 self.training_eval()
                 if self.save_checkpoints:
                     self.training_actor[self.env.network]._set_inputs(states[0])
