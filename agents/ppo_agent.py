@@ -29,7 +29,7 @@ class PPOAgent(object):
                  max_grad_norm=1.0,
                  gamma=0.99,
                  gae_lambda=0.95,
-                 horizon=5,
+                 horizon=50,
                  default_NSFNet_horizon=100,
                  default_GBN_horizon=150,
                  default_GEANT2_horizon=200,
