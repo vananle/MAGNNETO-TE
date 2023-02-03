@@ -29,7 +29,7 @@ class PPOAgent(object):
                  max_grad_norm=1.0,
                  gamma=0.99,
                  gae_lambda=0.95,
-                 horizon=100,
+                 horizon=5,
                  default_NSFNet_horizon=100,
                  default_GBN_horizon=150,
                  default_GEANT2_horizon=200,
@@ -215,6 +215,7 @@ class PPOAgent(object):
 
                 eps_rewards.append(np.mean(rewards))
                 mlu.append(info['mlu'])
+                self.change_sample = True
 
             iterations.set_description(f'Episode {episode} Reward: {np.mean(eps_rewards)}, '
                                        f'mlu: {np.mean(mlu)}')
