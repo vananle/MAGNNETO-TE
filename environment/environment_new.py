@@ -169,6 +169,7 @@ class EnvironmentNew(object):
         else:
             # print('next sample')
             self.num_sample += 1
+            self.num_sample = self.num_sample % self.tm.shape[0]
             self._reset_edge_attributes()
             # self.load_capacities()
             self.load_traffic_matrix()

@@ -221,14 +221,14 @@ class PPOAgent(object):
                                        f'mlu: {np.mean(mlu)}')
             tf_logs.training_summary_episode_logs(self.writer, episode, np.mean(eps_rewards), np.mean(mlu))
 
-            if (episode + 1) % self.eval_period == 0:
-                self.training_eval()
-                if self.save_checkpoints:
-                    self.training_actor[self.env.network]._set_inputs(states[0])
-                    self.training_critic[self.env.network]._set_inputs(states[0])
-                    self.save_model(os.path.join(self.checkpoint_dir, 'episode' + str(self.eval_episode)))
-                if self.change_traffic and self.eval_episode % self.change_traffic_period == 0:
-                    self.change_sample = True
+            # if (episode + 1) % self.eval_period == 0:
+            self.training_eval()
+            if self.save_checkpoints:
+                self.training_actor[self.env.network]._set_inputs(states[0])
+                self.training_critic[self.env.network]._set_inputs(states[0])
+                self.save_model(os.path.join(self.checkpoint_dir, 'episode' + str(self.eval_episode)))
+            if self.change_traffic and self.eval_episode % self.change_traffic_period == 0:
+                self.change_sample = True
 
     def only_evaluate(self):
         self.env.initialize_environment(num_sample=self.last_training_sample + 1)
@@ -279,7 +279,9 @@ class PPOAgent(object):
             total_min_max = []
             self.num_eval_samples = self.eval_envs[eval_env_type].tm.shape[0]
             mini_eval_episode = self.eval_episode * self.num_eval_samples
-            for _ in range(self.num_eval_samples):
+            mlu = []
+            rewards = []
+            for step in range(self.num_eval_samples):
                 self.eval_envs[eval_env_type].reset(change_sample=True)
                 state = self.eval_envs[eval_env_type].get_state()
                 tf_logs.eval_step_logs(self.writer, self.eval_envs[eval_env_type], self.eval_step, state)
@@ -309,8 +311,9 @@ class PPOAgent(object):
                     total_min_max.append(np.min(max_link_utilization))
                     # tf_logs.eval_final_log(self.writer, mini_eval_episode, max_link_utilization, eval_env_type)
                 mini_eval_episode += 1
-
+                mlu.append(info['mlu'])
             tf_logs.eval_top_log(self.writer, self.eval_episode, total_min_max, eval_env_type)
+            tf_logs.eval_summary_episode_logs(self.writer, self.eval_episode, avg_mlu=np.mean(mlu))
         self.eval_episode += 1
 
     def evaluation(self):
