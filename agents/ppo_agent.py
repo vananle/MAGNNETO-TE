@@ -265,7 +265,7 @@ class PPOAgent(object):
 
     def training_eval(self):
         # Evaluation phase
-        print('\n\tEvaluation ' + str(self.eval_episode) + '...\n')
+        # print('\n\tEvaluation ' + str(self.eval_episode) + '...\n')
 
         if self.eval_episode == 0:
             self.generate_eval_env()
@@ -281,7 +281,8 @@ class PPOAgent(object):
             mini_eval_episode = self.eval_episode * self.num_eval_samples
             mlu = []
             rewards = []
-            for step in range(self.num_eval_samples):
+            iterations = tqdm.trange(self.num_eval_samples)
+            for step in iterations:
                 self.eval_envs[eval_env_type].reset(change_sample=True)
                 state = self.eval_envs[eval_env_type].get_state()
                 tf_logs.eval_step_logs(self.writer, self.eval_envs[eval_env_type], self.eval_step, state)
@@ -311,7 +312,11 @@ class PPOAgent(object):
                     total_min_max.append(np.min(max_link_utilization))
                     # tf_logs.eval_final_log(self.writer, mini_eval_episode, max_link_utilization, eval_env_type)
                 mini_eval_episode += 1
-                mlu.append(info['mlu'])
+                u = info['mlu']
+                mlu.append(u)
+
+                iterations.set_description(f'Eval {self.eval_episode} MLU: {u}')
+
             tf_logs.eval_top_log(self.writer, self.eval_episode, total_min_max, eval_env_type)
             tf_logs.eval_summary_episode_logs(self.writer, self.eval_episode, avg_mlu=np.mean(mlu))
         self.eval_episode += 1
