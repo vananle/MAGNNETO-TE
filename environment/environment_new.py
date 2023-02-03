@@ -167,7 +167,7 @@ class EnvironmentNew(object):
         if len(self.env_type) > 1:
             self.initialize_environment()
         else:
-            print('next sample')
+            # print('next sample')
             self.num_sample += 1
             self._reset_edge_attributes()
             # self.load_capacities()
