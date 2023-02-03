@@ -17,7 +17,7 @@ PPOAgent.change_traffic = True
 PPOAgent.change_traffic_period = 1
 PPOAgent.last_training_sample = 49
 PPOAgent.max_evals = 100
-PPOAgent.eval_env_type = ['GBN','NSFNet','GEANT2']
+PPOAgent.eval_env_type = ['geant']
 PPOAgent.num_eval_samples = 30
 
 PPOAgent.critic_loss_factor=0.5

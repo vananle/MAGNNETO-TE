@@ -136,8 +136,6 @@ class EnvironmentNew(object):
         self.traffic_demand = self.tm[self.num_sample]
         self.get_link_probs()
 
-        pass
-
     def load_traffic_data(self):
         self.data = load_data(self.base_dir, self.network)
         if self.only_eval:
@@ -290,14 +288,7 @@ class EnvironmentNew(object):
         state = self.get_state()
         reward = self._compute_reward()
 
-        self.utilizations = []
-        for i, j in self.G.edges():
-            if self.G[i][j]['traffic'] <= 0:
-                self.utilizations.append(0.0)
-            else:
-                self.utilizations.append(self.G[i][j]['traffic'] / self.G[i][j]['capacity'])
-
-        mlu = max(self.utilizations)
+        mlu = max(self.link_traffic)
         info = {'mlu': mlu}
         return state, reward, info
 

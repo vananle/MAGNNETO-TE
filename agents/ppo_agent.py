@@ -150,6 +150,7 @@ class PPOAgent(object):
         values = np.zeros(self.horizon, dtype=np.float32)
 
         for t in range(self.horizon):
+        # for t in range(10):
             current_actions, current_log_probs = self.act(state)
             value = self.run_critic(state)
             total_reward = 0
